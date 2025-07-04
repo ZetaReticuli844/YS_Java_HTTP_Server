@@ -1,9 +1,6 @@
 package org.Meme;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -38,9 +35,9 @@ public class Main {
             if (path.equals("/")) {
                 output.write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
             } else if (path.equals("/hello")) {
-                String htmlFile = readFile("/Users/yogeshshekhawat/codecrafters-http-server-java/src/main/java/index.html");
+                String htmlFile = readFile("index.html");
                 String response = "HTTP/1.1 200 OK\r\n"
-                        +"Content-Type: text/html\r\n Content-Length: " + htmlFile.length() + "\r\n\r\n" + htmlFile;
+                        + "Content-Type: text/html\r\n Content-Length: " + htmlFile.length() + "\r\n\r\n" + htmlFile;
                 output.write(response.getBytes());
             } else {
                 output.write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes());
@@ -62,13 +59,17 @@ public class Main {
     }
 
 
-    public static String  readFile(String path){
-        try {
-            Path filePath = Paths.get(path);
-            return Files.readAllLines(filePath).stream().collect(Collectors.joining("\n"));
-        } catch (IOException e) {
-            System.out.println("IOException: " + e.getMessage());
-            return "";
+        public static String readFile (String path){
+            try (InputStream inputStream = Main.class.getClassLoader().getResourceAsStream(path);
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                if (inputStream == null) {
+                    throw new IOException("Resource not found: " + path);
+                }
+                return reader.lines().collect(Collectors.joining("\n"));
+            } catch (IOException e) {
+                System.out.println("IOException: " + e.getMessage());
+                return "";
+            }
         }
     }
-}
+
